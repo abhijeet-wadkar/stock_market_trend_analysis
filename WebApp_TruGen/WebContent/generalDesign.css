@@ -1,0 +1,84 @@
+@CHARSET "ISO-8859-1";
+@charset "utf-8";
+.header{
+	width:	1920px;
+	height: 75px;
+	background-color: #262626;	
+}
+
+#headerTable{
+	
+	align-self:center;
+	
+}
+td:empty {
+    width: 1200px;
+}
+td{
+padding-right: 30px;	
+}
+#loginbutton{
+	height: 30px;
+	width: 80px;
+	border-radius: 20px;
+	color:#981B46;
+	
+}
+#loginbutton:hover{
+	background-color:#981B46;
+	border:#F796CF;
+	color:#FFFFFF;
+	cursor:pointer;
+}
+#companyButton{
+	height: 40px;
+	width: 140px;
+	border-radius: 20px;
+	
+	font-size: 120%;
+	
+}
+#companyButton:hover{
+	
+	background-color:#981B46;
+	border:#F796CF;
+	color:#FFFFFF;
+	cursor:pointer;
+}
+tr.companyRow > td
+{
+  padding-bottom: 1em;
+}
+
+#textarea{
+	
+	height: 40px;
+	width: 300px;
+	-webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 10px;
+	color: #981B46;
+
+}
+.active { 
+	background:#981B46;
+	border:#F796CF;
+	color:#FFFFFF;
+
+}
+
+::-webkit-input-placeholder {
+   color: #981B46;
+}
+
+:-moz-placeholder { /* Firefox 18- */
+   color: #981B46;  
+}
+
+::-moz-placeholder {  /* Firefox 19+ */
+   color: #981B46;  
+}
+
+:-ms-input-placeholder {  
+   color: #981B46;  
+}
