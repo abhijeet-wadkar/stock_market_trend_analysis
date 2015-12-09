@@ -1,3 +1,4 @@
+<%//This page displays the buttons for the pre-set companies %>
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
@@ -52,6 +53,7 @@
 		</table>
 		
 				<%
+				        //display user searched company
 					String companyInputName = (String)request.getAttribute("companyInput");
 					if(companyInputName != null && !companyInputName.equals("error")){
 						%>

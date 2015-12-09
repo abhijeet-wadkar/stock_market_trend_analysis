@@ -1,3 +1,4 @@
+<%//This page is for displaying the header and the search bar, so the user can look-up comapny stock symobls%>
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>

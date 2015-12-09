@@ -1,3 +1,4 @@
+<%//Results.jsp reads in one comapny file and displays data in graphs %>
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
@@ -29,7 +30,7 @@
       var closingPrices = [];
       var dates = [];
       var volumes = [];
-      
+      //get request from ServletTest.java 
 	  <%
 	  	String companyInputName = "GOOG";
 		
@@ -55,7 +56,7 @@
     	String prob_50 = null;
     	String prob_75 = null;
     	String prob_90 = null;
-		
+		//open file. validation for this was done in ServletTest.java
 		String csvFile = "C:\\Users\\Bernie\\workspace\\WebApp_TruGen\\nasdaq\\" + companyInputName;
 		csvFile = csvFile+".csv";
 		
@@ -76,7 +77,10 @@
 		try {
 
 			br = new BufferedReader(new FileReader(csvFile));
-			
+
+			//get data and store in arrays
+                	//we only display the most recent 100 record - this saves MUCH time for displaying 
+
 			while ((line = br.readLine()) != null && counter < 100) {
 				if(counter > 0){
 				        // use comma as separator
@@ -128,8 +132,10 @@
 					e.printStackTrace();
 				}
 			}
-		}
-		
+	       }
+
+						   //here we get the mapReduce output for displaying the company score
+
 		br = null;
 		line = "";
 		System.out.println("------------------------------------------------");
@@ -184,6 +190,7 @@
           ['2007',  1030,      540]
         ]);
 		*/
+		//data comes in backwards ... need to reverse it 
 		dates.reverse();
 		closingPrices.reverse();
 		volumes.reverse();
@@ -197,7 +204,7 @@
 		volumeData.addColumn('date', 'date');
 		volumeData.addColumn('number', 'Trade Volume'); 
 		
-		
+		//add rows for google charts - this is for the price graph as well as the tradeVolume graph
 		for(var i = 0; i < dates.length; i++){
 		    data.addRow( [ new Date( dates[i] ), closingPrices[i] ] );
 		}	
@@ -218,6 +225,7 @@
           legend: { position: 'bottom' }
         };
         
+	//drawing the charts
        var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
        chart.draw(data, options);
         
@@ -229,6 +237,7 @@
     		                                                ['%Change', 'Probability'],
     		<%
     		                                      		// The name of the file to open.
+		    //This is where we read in the prediction output file from mapReduce jobs
     		                                     
     		                                            String fileName = "C:\\Users\\Bernie\\workspace\\WebApp_TruGen\\stock_output\\" + companyInputName + "-r-00000";
 
