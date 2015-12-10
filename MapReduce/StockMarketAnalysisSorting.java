@@ -69,13 +69,8 @@ class StockKey implements WritableComparable<StockKey> {
 
 	// compare key according to both symbol and percentage change
 	public int compareTo(StockKey o) {
-		// first campare symbols
-		int result = symbol.compareTo(o.symbol);
-		if (0 == result) {
-			// if symbols are same then comapre percentage change
-			result = percentageChange.compareTo(o.percentageChange);
-		}
-		return result;
+		// sorting accoring to second part of stockkey rather than symbol
+		return (o.percentageChange.compareTo(percentageChange));
 	}
 
 	// get symbol from stockkey
@@ -89,7 +84,7 @@ class StockKey implements WritableComparable<StockKey> {
 	}
 	
 	// get percentage change from stock key
-	public Double getpercentageChange() {
+	public Double getPercentageChange() {
 		return percentageChange;
 	}
 
@@ -114,13 +109,8 @@ class CompositeKeyComparator extends WritableComparator {
 		StockKey k1 = (StockKey) w1;
 		StockKey k2 = (StockKey) w2;
 
-		// campare symbols first
-		int result = k1.getSymbol().compareTo(k2.getSymbol());
-		if (0 == result) {
-			// compare percentage change if symbols are the same
-			result = k1.getpercentageChange().compareTo(k2.getpercentageChange());
-		}
-		return result;
+		// compare percentage change rather than symbol
+		return (k2.getPercentageChange().compareTo(k1.getPercentageChange()));
 	}
 }
 
@@ -136,7 +126,7 @@ class NaturalKeyGroupingComparator extends WritableComparator {
 		StockKey k1 = (StockKey) w1;
 		StockKey k2 = (StockKey) w2;
 
-		return k1.getSymbol().compareTo(k2.getSymbol());
+		return k2.getSymbol().compareTo(k1.getSymbol());
 	}
 }
 
@@ -164,64 +154,36 @@ public class StockMarketAnalysisSorting {
 		// Mapping function
 		public void map(Object key, Text value, Context context)
 				throws IOException, InterruptedException {
-
-			FileSplit fileSplit = (FileSplit) context.getInputSplit();
-			String filename = fileSplit.getPath().getName().toString().split("\\.")[0];
 			String[] result = value.toString().split("\n");
-
 			for (String line : result) {
 				try {
-					String[] columns = line.split(",");
-					double opening_price = Double.parseDouble(columns[1]);
-					double closing_price = Double.parseDouble(columns[6]);
-					double percentage_change = ((closing_price - opening_price) / opening_price) * 100;
-					context.write(new StockKey(filename, percentage_change),
-							new DoubleWritable(percentage_change));
+					String[] columns = line.split("\\s+");
+
+					// floor all the values for convenience
+					double score = Double.parseDouble(columns[1]);
+					double percentage_times_up = Double.parseDouble(columns[2]);
+					context.write(new StockKey(columns[0], score),
+							new DoubleWritable(percentage_times_up));
+
 				} catch (Exception e) {
-					System.out.println("Skpping first line");
+					System.out.println("Exception in the mapper function" + e);
 				}
 			}
 		}
 	}
 
-	public static class Reducer extends
-			Reducer<StockKey, DoubleWritable, DoubleWritable, DoubleWritable> {
-		private DoubleWritable result = new DoubleWritable();
-
-		MultipleOutputs<DoubleWritable, DoubleWritable> mos;
-
-		
-		public void setup(Context context) {
-			// use multiple output class for writing output
-			// a file per company as output
-			mos = new MultipleOutputs<DoubleWritable, DoubleWritable>(context);
-		}
-
+	public static class SortingReducer extends
+			Reducer<StockKey, DoubleWritable, Text, Text> {
 		// Reduce functon
 		public void reduce(StockKey key, Iterable<DoubleWritable> values,
 				Context context) throws IOException, InterruptedException {
 
-			int count = 0;
-			List<Double> list = new ArrayList<Double>();
-			for (DoubleWritable value : values) {
-				list.add(new Double(value.get()));
-				// count number of records for a company
-				count++;
-			}
-
-			double index = 1;
 			// for each value of a key
-			for (Double value : list) {
-				log.info(key.getSymbol() + " " +value.doubleValue());
+			for (DoubleWritable value : values) {
 				// restructure the key and value to the orginal format (same as before mapping function)
-				mos.write(key.getSymbol(), new DoubleWritable(index/count), new DoubleWritable(value.doubleValue()));
-				index++;
+				context.write(new Text(key.getSymbol()), new Text(key.getPercentageChange().toString() + " " + Double.toString(value.get())));
 			}
 		}
-		
-		protected void cleanup(Context context) throws IOException, InterruptedException {
-	        mos.close();
-	    }
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -238,11 +200,11 @@ public class StockMarketAnalysisSorting {
 		job.setGroupingComparatorClass(NaturalKeyGroupingComparator.class);
 		job.setSortComparatorClass(CompositeKeyComparator.class);
 
-		job.setReducerClass(Reducer.class);
+		job.setReducerClass(SortingReducer.class);
 		job.setMapOutputKeyClass(StockKey.class);
 		job.setMapOutputValueClass(DoubleWritable.class);
-		job.setOutputKeyClass(DoubleWritable.class);
-		job.setOutputValueClass(DoubleWritable.class);
+		job.setOutputKeyClass(Text.class);
+		job.setOutputValueClass(Text.class);
 		// 1. Get the Configuration instance
 		Configuration configuration = new Configuration();
 		// 2. Get the instance of the HDFS

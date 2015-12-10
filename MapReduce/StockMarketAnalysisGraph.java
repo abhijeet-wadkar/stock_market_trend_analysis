@@ -36,11 +36,13 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
+// StockKey class for manupilating a composite key
 class StockKey implements WritableComparable<StockKey> {
 
 	private String symbol;
 	private Double percentageChange;
 
+	// zero argument constructor
 	public StockKey() {
 	}
 
@@ -175,6 +177,8 @@ public class StockMarketAnalysisGraph {
 
 		
 		public void setup(Context context) {
+			// use multiple output class for writing output
+			// a file per company as output
 			mos = new MultipleOutputs<DoubleWritable, DoubleWritable>(context);
 		}
 
