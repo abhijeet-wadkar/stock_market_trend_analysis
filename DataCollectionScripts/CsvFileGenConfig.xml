@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- const.xml -->
+<config>
+    <InputDir>/media/sf_VMshare/stocks/nyse/</InputDir>
+    <OutFile>/media/sf_VMshare/stocks/nyse.out</OutFile>
+</config>
