@@ -10,14 +10,19 @@ import java.util.Date;
 import java.util.List;
 
 
-
+/**********************************************************************************
+    This class constructs URL for data downloader and calls the data downloader.
+    It takes the list of ticker symbols in csv format and output file path as input.
+**********************************************************************************/
 public class DownloadManager 
 {
+        // create downloader 
 	static Downloader downloader = new Downloader();
 	static List<String> lSymbols = new ArrayList<String>();
 	
 	public static void main(String args[]) throws IOException
 	{
+                // get input and output file paths
 		if (args.length != 2)
 		{
 			usage();
@@ -25,6 +30,7 @@ public class DownloadManager
 		String sSymbolFile   = args[0];
 		String sOutputFolder = args[1];
 		
+                // parse symbol file and store symbols to a list
 		File fSymbolFile = new File(sSymbolFile);
 		System.out.println("Loading symbols from file: " + sSymbolFile.toString() + "...");
 		BufferedReader br = null;
@@ -56,6 +62,7 @@ public class DownloadManager
 		// Starts from index 1 to skip the header.
 		for (int i = 1; i < lSymbols.size(); i++)
 		{
+                        // Construct URL
 			System.out.println("Downloading data for symbol: " + lSymbols.get(i));
 			
 			Calendar cal = Calendar.getInstance();
@@ -69,6 +76,8 @@ public class DownloadManager
 			String sFileName = sOutputFolder + File.separatorChar + lSymbols.get(i) + ".csv";
 			// System.out.println("URL :   " + sUrl);
 			// System.out.println("File:   " + sFileName);
+
+                        // Call downloader
 			try
 			{
 				downloader.download(sUrl, sFileName);
@@ -83,6 +92,9 @@ public class DownloadManager
 		}
 	}
 	
+        /*
+            This method prints out usage to standard out
+        */
 	public static void usage()
 	{
 		System.out.println("Usage: ");

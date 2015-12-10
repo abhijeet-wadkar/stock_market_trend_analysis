@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- const.xml -->
+<!-- 
+     This is a config file for CsvFileGenerator. It takes
+     a folder <InputDir> containing historical market data 
+     as input and generate a single csv file <OutFile>.
+-->
 <config>
     <InputDir>/media/sf_VMshare/stocks/nyse/</InputDir>
     <OutFile>/media/sf_VMshare/stocks/nyse.out</OutFile>

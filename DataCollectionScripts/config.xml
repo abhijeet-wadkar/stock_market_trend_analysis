@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- const.xml -->
+<!-- 
+     This is a configuration for hbase data store.
+     InputDir points to source dir i.e. downloaded 
+     from Yahoo Finance website. TableName is the 
+     target table name of hbase database. If the 
+     table does not exist, set CreateNewTable to 
+     true. If you are using existing database table,
+     set it to false.
+-->
 <config>
     <InputDir>/media/sf_VMshare/stocks/small/nasdaq/</InputDir>
     <TableName>market</TableName>

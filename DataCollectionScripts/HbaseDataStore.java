@@ -21,15 +21,34 @@ import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
 
+/*******************************************************************
+    This class parses the historical stock market data and populates
+    hbase table.
+
+    The input file is the config xml file.
+
+    Sample Config File:
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <config>
+        <InputDir>/media/sf_VMshare/stocks/small/nasdaq/</InputDir>
+        <TableName>market</TableName>
+        <CreateNewTable>true</CreateNewTable>
+    </config>
+
+    How to run:
+    $> java -cp /path/to/app/jar com.umbc.bigdata.datastore.HbaseDataStore /path/to/config.xml
+
+*******************************************************************/
 public class HbaseDataStore 
 {
-	
+        // Create logger	
 	static Log logger = LogFactory.getLog(HbaseDataStore.class);
 
 	public static void main(String[] args) 
 	{
 		logger.info("Hbase DataStore started ...");
-
+        // Get data from config
         String sConfig;
         if (args.length != 1)
         {
@@ -68,13 +87,17 @@ public class HbaseDataStore
         	System.exit(1);
         }
         
+        // Get exchange code from folder name
         String sExSymbol = getSymbol(fInDir);
         System.out.println("ExChange Symbol : " + sExSymbol);
         
         File[] fileList;
         if (fInDir.exists() && fInDir.isDirectory())
         {
+                // Get a file list from input dir
         	fileList = fInDir.listFiles();
+
+                // Create new table
         	if (bCreateTableChk)
         	{
         		try
@@ -87,6 +110,8 @@ public class HbaseDataStore
         			System.exit(0);
         		}
         	}
+           
+                // parse files and store data
         	parseAndStore(fileList, sExSymbol);
         }
         else
@@ -97,16 +122,25 @@ public class HbaseDataStore
         logger.info("Hbase data store done!!");
 	}
 	
+        /*
+            This method strips out file path and returns symbol.
+        */
 	private static String getSymbol(File fInDir)
 	{
 		return fInDir.getAbsolutePath().substring(fInDir.getAbsolutePath().lastIndexOf("/") + 1);
 	}
 
+        /*
+            This method prints out usage on standard out.
+        */
 	private static void usage()
 	{
 		System.out.println("Usage : app_name  <path/to/config/file>");
 	}
 	
+        /*
+            This method parses the data file in csv format and store them to hbase table
+        */
 	private static void parseAndStore(File[] in, String sExSymbol)
 	{
 		BufferedReader br = null;
@@ -166,6 +200,9 @@ public class HbaseDataStore
 		}// end for loop
 	}
 	
+        /*
+           This method creates new table on hbase
+        */
 	private static void createHbaseTable(String tableName) throws IOException
 	{
 		Configuration conf = HBaseConfiguration.create();
@@ -176,6 +213,9 @@ public class HbaseDataStore
 		logger.info("Table Created.");
 	}
 	
+        /*
+           This method inserts data into hbase table
+        */
 	private static void insertHbase(String tableName, String sKey, String sOpen, String sHigh, String sLow, String sClose, String sVol, String sAdjClose)
 	{
 		Configuration conf = HBaseConfiguration.create();
