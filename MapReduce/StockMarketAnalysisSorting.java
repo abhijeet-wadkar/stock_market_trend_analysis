@@ -36,14 +36,17 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
+// StockKey class for manupilating a composite key
 class StockKey implements WritableComparable<StockKey> {
 
 	private String symbol;
 	private Double percentageChange;
 
+	// zero argument constructor
 	public StockKey() {
 	}
 
+	// constructor with arguments
 	public StockKey(String symbol, Double percentageChange) {
 		this.symbol = symbol;
 		this.percentageChange = percentageChange;
@@ -64,30 +67,38 @@ class StockKey implements WritableComparable<StockKey> {
 		out.writeDouble(percentageChange);
 	}
 
+	// compare key according to both symbol and percentage change
 	public int compareTo(StockKey o) {
+		// first campare symbols
 		int result = symbol.compareTo(o.symbol);
 		if (0 == result) {
+			// if symbols are same then comapre percentage change
 			result = percentageChange.compareTo(o.percentageChange);
 		}
 		return result;
 	}
 
+	// get symbol from stockkey
 	public String getSymbol() {
 		return symbol;
 	}
 
+	// set symbol
 	public void setSymbol(String symbol) {
 		this.symbol = symbol;
 	}
-
+	
+	// get percentage change from stock key
 	public Double getpercentageChange() {
 		return percentageChange;
 	}
 
+	// set percentage change
 	public void setpercentageChange(Double percentageChange) {
 		this.percentageChange = percentageChange;
 	}
 }
+
 
 class CompositeKeyComparator extends WritableComparator {
 
@@ -95,14 +106,18 @@ class CompositeKeyComparator extends WritableComparator {
 		super(StockKey.class, true);
 	}
 
+	// compare two stock keys
 	@SuppressWarnings("rawtypes")
 	@Override
 	public int compare(WritableComparable w1, WritableComparable w2) {
+		// first typecast to appropriate object
 		StockKey k1 = (StockKey) w1;
 		StockKey k2 = (StockKey) w2;
 
+		// campare symbols first
 		int result = k1.getSymbol().compareTo(k2.getSymbol());
 		if (0 == result) {
+			// compare percentage change if symbols are the same
 			result = k1.getpercentageChange().compareTo(k2.getpercentageChange());
 		}
 		return result;
@@ -125,6 +140,7 @@ class NaturalKeyGroupingComparator extends WritableComparator {
 	}
 }
 
+// used hashing mechanism
 class NaturalKeyPartitioner extends Partitioner<StockKey, DoubleWritable> {
 
 	@Override
@@ -136,15 +152,16 @@ class NaturalKeyPartitioner extends Partitioner<StockKey, DoubleWritable> {
 
 }
 
-public class StockMarketAnalysisGraph {
+public class StockMarketAnalysisSorting {
 
 	private final static String JAR_NAME = "sma.jar";
 	
-	private static Log log = LogFactory.getLog(StockMarketAnalysisGraph.class); 
+	private static Log log = LogFactory.getLog(StockMarketAnalysisSorting.class); 
 
 	public static class TokenizerMapper extends
 			Mapper<Object, Text, StockKey, DoubleWritable> {
 
+		// Mapping function
 		public void map(Object key, Text value, Context context)
 				throws IOException, InterruptedException {
 
@@ -167,7 +184,7 @@ public class StockMarketAnalysisGraph {
 		}
 	}
 
-	public static class IntScoreReducer extends
+	public static class Reducer extends
 			Reducer<StockKey, DoubleWritable, DoubleWritable, DoubleWritable> {
 		private DoubleWritable result = new DoubleWritable();
 
@@ -175,9 +192,12 @@ public class StockMarketAnalysisGraph {
 
 		
 		public void setup(Context context) {
+			// use multiple output class for writing output
+			// a file per company as output
 			mos = new MultipleOutputs<DoubleWritable, DoubleWritable>(context);
 		}
 
+		// Reduce functon
 		public void reduce(StockKey key, Iterable<DoubleWritable> values,
 				Context context) throws IOException, InterruptedException {
 
@@ -185,12 +205,15 @@ public class StockMarketAnalysisGraph {
 			List<Double> list = new ArrayList<Double>();
 			for (DoubleWritable value : values) {
 				list.add(new Double(value.get()));
+				// count number of records for a company
 				count++;
 			}
 
 			double index = 1;
+			// for each value of a key
 			for (Double value : list) {
 				log.info(key.getSymbol() + " " +value.doubleValue());
+				// restructure the key and value to the orginal format (same as before mapping function)
 				mos.write(key.getSymbol(), new DoubleWritable(index/count), new DoubleWritable(value.doubleValue()));
 				index++;
 			}
@@ -204,17 +227,18 @@ public class StockMarketAnalysisGraph {
 	public static void main(String[] args) throws Exception {
 				
 		Configuration conf = new Configuration();
+		// set splitsize to an appropriate value
 		conf.setLong(FileInputFormat.SPLIT_MAXSIZE, 1000000);
 		Job job = Job.getInstance(conf, "stock market");
 		job.setJar(JAR_NAME);
-		job.setJarByClass(StockMarketAnalysisGraph.class);
+		job.setJarByClass(StockMarketAnalysisSorting.class);
 		job.setMapperClass(TokenizerMapper.class);
 
 		job.setPartitionerClass(NaturalKeyPartitioner.class);
 		job.setGroupingComparatorClass(NaturalKeyGroupingComparator.class);
 		job.setSortComparatorClass(CompositeKeyComparator.class);
 
-		job.setReducerClass(IntScoreReducer.class);
+		job.setReducerClass(Reducer.class);
 		job.setMapOutputKeyClass(StockKey.class);
 		job.setMapOutputValueClass(DoubleWritable.class);
 		job.setOutputKeyClass(DoubleWritable.class);
